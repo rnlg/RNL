@@ -532,7 +532,7 @@ Options[DummyEliminate]={RemoveDummies->False};
 
 VErule2:={SubIndex[x_?VecQ,n_?VecIndQ]*SupIndex[y_?VecQ,n_]:>(AppendTo[ni,n];sp[x,y]),HoldPattern[MetricTensor[{m1___,n_?VecIndQ,m2___},k1_List]]*HoldPattern[MetricTensor[k2_List,{m3___,n_,m4___}]]:>MetricTensor[Join[{m1,m2},k2],Join[k1,{m3,m4}]],
 (HoldPattern[MetricTensor[{n_,m_}|{m_,n_},{}]]*x_):>(AppendTo[ni,n];UpperIndex[x,n->m])/;TypeBelowQ[x,HoldPattern[TComponent[{___},{___,n,___},_]]],(HoldPattern[MetricTensor[{m_},{n_}]]*x_):>(AppendTo[ni,n];UpperIndex[x,n->m])/;TypeBelowQ[x,HoldPattern[TComponent[{___,n,___},{___},_]]],(HoldPattern[MetricTensor[{},{n_,m_}|{m_,n_}]]*x_):>(AppendTo[ni,n];LowerIndex[x,n->m])/;TypeBelowQ[x,HoldPattern[TComponent[{___,n,___},{___},_]]],(HoldPattern[MetricTensor[{n_},{m_}]]*x_):>(AppendTo[ni,n];LowerIndex[x,n->m])/;TypeBelowQ[x,HoldPattern[TComponent[{___},{___,n,___},_]]]};
-(*f={#,","}&;   *)         
+DummyEliminate[x_List,opt:OptionsPattern[]]:=DummyEliminate[#,opt]&/@x;
 DummyEliminate[x_Plus,opt:OptionsPattern[]]:=DummyEliminate[#,opt]&/@x;
 DummyEliminate[x_,opt:OptionsPattern[]]:=ne[x,Alternatives@@Dummies[x],OptionValue[RemoveDummies]]
 ne[x_,Alternatives[],opt_]:=x;
@@ -733,7 +733,7 @@ GramDeterminant[v__]:=Det[Outer[sp,{v},{v}]]
 
 
 Options[ParametricRepresentation]={Sign->Plus,Variables->"x",Method->"UF",Contours->None};
-ParametricRepresentation[numerator_,denfl:{{_,_Integer?Positive}..},lms_List,OptionsPattern[]]:=Module[
+ParametricRepresentation[numerator_,denfl:{{_,Except[_Integer?NonPositive]}..},lms_List,OptionsPattern[]]:=Module[
 {dens,ns,k,xs,
 num=numerator,den,
 d=MetricTensor[],
@@ -779,7 +779,7 @@ dens=Function[{d,k},
 If[0===(c=s Coefficient[d,i0]),Message[ParametricRepresentation::i0];Return[$Failed]];
 num/=c^k;{d/c,k}
 ]@@@DeleteCases[dens,_?(FreeQ[#,Alternatives@@lms]&)];
-Print[HoldForm[ParametricRepresentation[##]]&[num/.i0->0,dens/.i0->0,lms,opts]];
+(*Print[HoldForm[ParametricRepresentation[##]]&[num/.i0->0,dens/.i0->0,lms,opts]];*)
 ParametricRepresentation[num/.i0->0,dens/.i0->0,lms,opts]
 ]
 
