@@ -59,6 +59,9 @@ FORMTraces::usage="FORMTraces[ex] takes traces in ex marked with gTrace.\nNB: FO
 GMatrices::usage="\n"<>ToString[TableForm[Partition[Join[Names["GMatrices`*"],{"","","","","",""}],5],TableSpacing->{0,3}]];
 
 
+GDistribute::usage="GDistribute[\[LeftAngleBracket]\[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR]\[RightAngleBracket]] distributes over + and pulls out factors in expression";
+
+
 Print["Input file hash: ",Style[FileHash[$InputFileName,"MD5"],Small]]
 
 
@@ -230,44 +233,51 @@ GReduce[Sum[-2*(-1)^i GTrace[GHat[p] . {b}[[i]]]*Dot[a,Sequence@@Delete[{b},i],G
 GMPat=GIdentity|GMatrix|GHat|Gamma5;
 
 
-GTrace[x_Plus]:=GTrace/@x;
-GTrace[x_?(FreeQ[#,GMPat]&)*y_]:=x*GTrace[y];
-GTrace[GIdentity]=1;
-GTrace[((SubIndex|SupIndex)[GMatrix,_])|GHat[_]]=0;
+GDistribute[expr_]:=Module[{ex,dot,fl,factor},
+factor=(fl=Times@@Power@@@DeleteCases[FactorList[#],_?(FreeQ[#,GMPat]&)];
+{Together[#/fl],fl})&;
+ex=FixedPoint[(#/.Dot->dot/.dt_dot:>Distribute[dt]/.dot[a__]:>((Times@@#[[1]])(dot@@#[[2]])&[Transpose[factor/@{a}]])/.dot->Dot)&,expr]
+]
+
+
+GTrace[expr_]:=GDistribute[expr]/.Dot->gtrace
+
+
+gtrace[a__]/;FreeQ[{a},Gamma5]&&OddQ[Length[{a}]]=0;
+gtrace[]=1;
+gtrace[a:(SupIndex|SubIndex)[GMatrix,_],b:(SupIndex|SubIndex)[GMatrix,_]]:=MetricTensor[Last/@Cases[{a,b},_SupIndex],Last/@Cases[{a,b},_SubIndex]]
+gtrace[a:(SupIndex|SubIndex)[GMatrix,_],GHat[b_]]:=ReplacePart[a,1->b]
+gtrace[GHat[a_],b:(SupIndex|SubIndex)[GMatrix,_]]:=ReplacePart[b,1->a]
+gtrace[GHat[a_],GHat[b_]]:=sp[a,b]
+gtrace[a_,b1_,bs__]:=Sum[(-1)^(i+1)*gtrace[a,{b1,bs}[[i]]]gtrace@@Delete[{b1,bs},i],{i,Length[{b1,bs}]}]
 
 
 (* ::Input:: *)
+(**)
+(*GTrace[x_Plus]:=GTrace/@x;*)
+(*GTrace[x_?(FreeQ[#,GMPat]&)*y_]:=x*GTrace[y];*)
+(*GTrace[GIdentity]=1;*)
+(*GTrace[((SubIndex|SupIndex)[GMatrix,_])|GHat[_]]=0;*)
 (*GTrace[(a:((SubIndex|SupIndex)[GMatrix,_])) . (b:((SubIndex|SupIndex)[GMatrix,_]))]:=MetricTensor[(#[[2]])&/@Cases[{a,b},_SupIndex],(#[[2]])&/@Cases[{a,b},_SubIndex]];*)
+(*GTrace[SupIndex[GMatrix,a_] . SupIndex[GMatrix,b_]]:=MetricTensor[{a,b},{}];*)
+(*GTrace[SubIndex[GMatrix,a_] . SubIndex[GMatrix,b_]]:=MetricTensor[{},{a,b}];*)
+(*GTrace[SupIndex[GMatrix,a_] . SubIndex[GMatrix,b_]]:=MetricTensor[{a},{b}];*)
+(*GTrace[SubIndex[GMatrix,b_] . SupIndex[GMatrix,a_]]:=MetricTensor[{a},{b}];*)
+(*GTrace[(GHat[a_] . (b:((SubIndex|SupIndex)[GMatrix,_])))|((b:((SubIndex|SupIndex)[GMatrix,_])) . GHat[a_])]:=ReplacePart[b,a,1];*)
+(*GTrace[GHat[a_] . GHat[b_]]:=sp[a,b];*)
+(*pair[SupIndex[GMatrix,a_],SupIndex[GMatrix,b_]]:=MetricTensor[{a,b},{}];*)
+(*pair[SubIndex[GMatrix,a_],SubIndex[GMatrix,b_]]:=MetricTensor[{},{a,b}];*)
+(*pair[SupIndex[GMatrix,a_],SubIndex[GMatrix,b_]]:=MetricTensor[{a},{b}];*)
+(*pair[SubIndex[GMatrix,b_],SupIndex[GMatrix,a_]]:=MetricTensor[{a},{b}];*)
+(*pair[GHat[a_],(b:((SubIndex|SupIndex)[GMatrix,_]))]:=ReplacePart[b,a,1]*)
+(*pair[(b:((SubIndex|SupIndex)[GMatrix,_])),GHat[a_]]:=ReplacePart[b,a,1];*)
+(*pair[GHat[a_],GHat[b_]]:=sp[a,b];*)
+(*GTrace[a:HoldPattern[Dot[(((SubIndex|SupIndex)[GMatrix,_])|GHat[_])..]]]:=*)
+(*  If[OddQ@Length@a,0,Sum[(-1)^i pair[a[[1]],a[[i]]]*GTrace[Delete[a,{{1},{i}}]],{i,2,Length[a]}]]*)
 
 
-GTrace[SupIndex[GMatrix,a_] . SupIndex[GMatrix,b_]]:=MetricTensor[{a,b},{}];
-GTrace[SubIndex[GMatrix,a_] . SubIndex[GMatrix,b_]]:=MetricTensor[{},{a,b}];
-GTrace[SupIndex[GMatrix,a_] . SubIndex[GMatrix,b_]]:=MetricTensor[{a},{b}];
-GTrace[SubIndex[GMatrix,b_] . SupIndex[GMatrix,a_]]:=MetricTensor[{a},{b}];
-
-
-GTrace[(GHat[a_] . (b:((SubIndex|SupIndex)[GMatrix,_])))|((b:((SubIndex|SupIndex)[GMatrix,_])) . GHat[a_])]:=ReplacePart[b,a,1];
-GTrace[GHat[a_] . GHat[b_]]:=sp[a,b];
-
-
-pair[SupIndex[GMatrix,a_],SupIndex[GMatrix,b_]]:=MetricTensor[{a,b},{}];
-pair[SubIndex[GMatrix,a_],SubIndex[GMatrix,b_]]:=MetricTensor[{},{a,b}];
-pair[SupIndex[GMatrix,a_],SubIndex[GMatrix,b_]]:=MetricTensor[{a},{b}];
-pair[SubIndex[GMatrix,b_],SupIndex[GMatrix,a_]]:=MetricTensor[{a},{b}];
-
-
-pair[GHat[a_],(b:((SubIndex|SupIndex)[GMatrix,_]))]:=ReplacePart[b,a,1]
-pair[(b:((SubIndex|SupIndex)[GMatrix,_])),GHat[a_]]:=ReplacePart[b,a,1];
-
-
-pair[GHat[a_],GHat[b_]]:=sp[a,b];
-
-
-GTrace[a:HoldPattern[Dot[(((SubIndex|SupIndex)[GMatrix,_])|GHat[_])..]]]:=
-  If[OddQ@Length@a,0,Sum[(-1)^i pair[a[[1]],a[[i]]]*GTrace[Delete[a,{{1},{i}}]],{i,2,Length[a]}]]
-
-
-GTrace[a_Dot]:=GTrace[b]/;a=!=(b=LFDistribute[a,Dot])
+(* ::Input:: *)
+(*GTrace[a_Dot]:=GTrace[b]/;a=!=(b=LFDistribute[a,Dot])*)
 
 
 SetLinear[gTrace,All];
