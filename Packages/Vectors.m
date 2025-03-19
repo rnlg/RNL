@@ -28,8 +28,8 @@ Needs["Types`","RNL`Types`"];
 BeginPackage["Vectors`",{"LinearFunctions`","Numbers`","Types`"}]
 
 
-$VectorsVersion="1.1";
-$VectorsReleaseDate="11.01.2020";
+$VectorsVersion="1.2";
+$VectorsReleaseDate="20.03.2025";
 
 
 Off[General::"spell1"];
@@ -105,17 +105,18 @@ GramMatrix::usage="GramMatrix[\!\(\*SubscriptBox[\(\[ScriptV]\), \(1\)]\),\!\(\*
 VectorsLog::usage="VectorsLog=True turns on some log information of the package.";If[!ValueQ[VectorsLog],VectorsLog=True];
 
 
+ParametricRepresentation::usage="ParametricRepresentation[numerator,{{D1,n1},{D2,n2},...},{l1,...}] constructs a parametric representation for the loop integral with given numerator and denominator D1^n1*D2*n2*...\nParametricRepresentation[expr,{l1,...},Contours->i0] does the same first automatically finding and normalizing denominators according to i0 prescription.\nOptions:\n    Sign->Plus|Minus --- use Plus for Euclidean case and Minus for pseudoTuclidean case.\n    Method->\"UF\"|\"G\" --- determines whether to use conventional Feynman representation (UF) or Lee-Pomeransky representation (G)\n    Contours->i0 (variable) --- determines the variable which ins used for automatic detection of denominators in the second form.";
+
+
 Vectors`Private`VectorsPrint:=If[VectorsLog,Print[##]]&;(*VectorsPrint is equivalent to Print if VectorsLog=True*)
 Vectors`Private`VectorsPrint[$Input];
+Vectors`Private`VectorsPrint["Input file hash: ",Style[FileHash[$InputFileName,"MD5"],Small]];
 Vectors`Private`VectorsPrint["****************",Style["Vectors v"<>ToString[$VectorsVersion],{Bold}],"********************\n\
 Author:Roman N.Lee,Budker Institute of Nuclear Physics,Novosibirsk.\n\
 Vectors package defines several types:Vector,VectorIndex,TComponent.\n\
 Use Declare[{v1,v2,\[Ellipsis]},Vector] to declare variables v1,v2,\[Ellipsis] as vectors.\n\
 Use Declare[{\[Mu],\[Nu],\[Ellipsis]},VectorIndex] to declare variables \[Mu],\[Nu],\[Ellipsis] as vector indices.\n\
 See ?Vectors`* for a list of functions."];
-
-
-ParametricRepresentation::usage="ParametricRepresentation[numerator,{{D1,n1},{D2,n2},...},{l1,...}] constructs a parametric representation for the loop integral with given numerator and denominator D1^n1*D2*n2*...\nParametricRepresentation[expr,{l1,...},Contours->i0] does the same first automatically finding and normalizing denominators according to i0 prescription.\nOptions:\n    Sign->Plus|Minus --- use Plus for Euclidean case and Minus for pseudoTuclidean case.\n    Method->\"UF\"|\"G\" --- determines whether to use conventional Feynman representation (UF) or Lee-Pomeransky representation (G)\n    Contours->i0 (variable) --- determines the variable which ins used for automatic detection of denominators in the second form.";
 
 
 (* ::Section:: *)

@@ -31,8 +31,8 @@ Module[{b=Contexts["GMatrices`*"]},If[b=!={},
 Vectors`VectorsLog=False;Needs["Vectors`","RNL`Vectors`"];
 Needs["LinearFunctions`","RNL`LinearFunctions`"];
 Needs["Numbers`","RNL`Numbers`"];
-Needs["Types`","RNL`Types`"];Notation`AutoLoadNotationPalette = False;
-BeginPackage["GMatrices`",{"Notation`","Types`","Numbers`","LinearFunctions`","Vectors`"}]
+Needs["Types`","RNL`Types`"];
+BeginPackage["GMatrices`",{(*"Notation`","Types`",*)"Numbers`","LinearFunctions`","Vectors`"}]
 
 
 $GMatricesFORMTempDir=$TemporaryDirectory<>"/";
@@ -44,29 +44,41 @@ $GMatricesFORMTempDir=$TemporaryDirectory<>"/";
 
 GLMatrix::usage="GLMatrix is a type of all linear combinations of \[Gamma]-matrices";
 GPMatrix::usage="GPMatrix is a type of all polinomials of \[Gamma]-matrices";
-GTComponent::usage="GTComponent[{\[LeftAngleBracket]\[ScriptU]\[ScriptP]\[ScriptP]\[ScriptE]\[ScriptR]\[RightAngleBracket]},{\[LeftAngleBracket]\[ScriptL]\[ScriptO]\[ScriptW]\[ScriptE]\[ScriptR]\[RightAngleBracket]},{\[LeftAngleBracket]\[ScriptN]\[ScriptU]\[ScriptM]\[ScriptB]\[RightAngleBracket]}] is a type of covariant polinomials of \[Gamma]-matrices having \[LeftAngleBracket]\[ScriptU]\[ScriptP]\[ScriptP]\[ScriptE]\[ScriptR]\[RightAngleBracket], \[LeftAngleBracket]\[ScriptL]\[ScriptO]\[ScriptW]\[ScriptE]\[ScriptR]\[RightAngleBracket], and \[LeftAngleBracket]\[ScriptN]\[ScriptU]\[ScriptM]\[ScriptB]\[RightAngleBracket](coupled) indices";
-GTCompQ::usage="GTCompQ[\[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR]] gives True if \[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR] is of type GTComponent[...]";
-GTComponentQ::usage="GTComponentQ[\[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR],{\[ScriptU]\[ScriptP]\[ScriptP]\[ScriptE]\[ScriptR]},{\[ScriptL]\[ScriptO]\[ScriptW]\[ScriptE]\[ScriptR]}] gives true if ExpressionType[\[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR]] matches GTComponent[{\[ScriptU]\[ScriptP]\[ScriptP]\[ScriptE]\[ScriptR]},{\[ScriptL]\[ScriptO]\[ScriptW]\[ScriptE]\[ScriptR]},_List]";
+GTComponent::usage="GTComponent[{upper},{lower},{numb}] is a type of covariant polinomials of \[Gamma]-matrices having upper, lower, and numb (coupled) indices";
+GTCompQ::usage="GTCompQ[expr] gives True if expr is of type GTComponent[...]";
+GTComponentQ::usage="GTComponentQ[expr,{upper},{lower}] gives true if ExpressionType[expr] matches GTComponent[{upper},{lower},_List]";
 GIdentity::usage="GIdentity is the identity matrix";
 GMatrix::usage="GMatrix is the \[Gamma]-matrix, use lower/upper indices";
 Gamma5::usage="Gamma5 is the normalized contraction of \[Gamma]-matrices with the antisymmetric tensor in integer dimension";
-GReduce::usage="GReduce[\[LeftAngleBracket]\[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR]\[RightAngleBracket]] does some known reduction of formulas with \[Gamma]-matrices";
-GLinQ::usage="GLinQ[\[LeftAngleBracket]\[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR]\[RightAngleBracket]] returns True if \[LeftAngleBracket]\[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR]\[RightAngleBracket] is linear in \[Gamma]-matrices";
-GHat::usage="GHat[\[LeftAngleBracket]\[ScriptV]\[ScriptE]\[ScriptC]\[RightAngleBracket]] represents the contraction of\[LeftAngleBracket]\[ScriptV]\[ScriptE]\[ScriptC]\[RightAngleBracket]and \[Gamma]-matrix vector indices";
-GTrace::usage="GTrace[\[LeftAngleBracket]\[ScriptCapitalG]\[ScriptCapitalP]\[ScriptCapitalM]\[ScriptA]\[ScriptT]\[ScriptR]\[ScriptI]\[ScriptX]\[RightAngleBracket]] calculates a trace of \[LeftAngleBracket]\[ScriptCapitalG]\[ScriptCapitalP]\[ScriptCapitalM]\[ScriptA]\[ScriptT]\[ScriptR]\[ScriptI]\[ScriptX]\[RightAngleBracket] over \[Gamma]-matrices";
-gTrace::usage="gTrace[\[LeftAngleBracket]\[ScriptCapitalG]\[ScriptCapitalP]\[ScriptCapitalM]\[ScriptA]\[ScriptT]\[ScriptR]\[ScriptI]\[ScriptX]\[RightAngleBracket]] marks a trace of \[LeftAngleBracket]\[ScriptCapitalG]\[ScriptCapitalP]\[ScriptCapitalM]\[ScriptA]\[ScriptT]\[ScriptR]\[ScriptI]\[ScriptX]\[RightAngleBracket]. Use FORMTraces to take traces.";
+GReduce::usage="GReduce[expr] does some known reduction of formulas with \[Gamma]-matrices";
+GLinQ::usage="GLinQ[expr] returns True if expr is linear in \[Gamma]-matrices";
+GHat::usage="GHat[vec] represents the contraction of vec and \[Gamma]-matrix vector indices";
+GTrace::usage="GTrace[GPmatrix] calculates a trace of GPmatrix over \[Gamma]-matrices";
+gTrace::usage="gTrace[GPmatrix] marks a trace of GPmatrix. Use FORMTraces to take traces.";
 FORMTraces::usage="FORMTraces[ex] takes traces in ex marked with gTrace.\nNB: FORM is not good with denominators, so it is better if ex has no denominators.";
 GMatrices::usage="\n"<>ToString[TableForm[Partition[Join[Names["GMatrices`*"],{"","","","","",""}],5],TableSpacing->{0,3}]];
 
 
-GDistribute::usage="GDistribute[\[LeftAngleBracket]\[ScriptE]\[ScriptX]\[ScriptP]\[ScriptR]\[RightAngleBracket]] distributes over + and pulls out factors in expression";
+$GMatricesVersion=1.0;
 
 
-Print["Input file hash: ",Style[FileHash[$InputFileName,"MD5"],Small]]
+GMatricesLog::usage="GMatricesLog=True turns on some log information of the package.";If[!ValueQ[GMatricesLog],GMatricesLog=True];
+
+
+GDistribute::usage="GDistribute[expr] distributes over + and pulls out factors in expression";
 
 
 Begin["`Private`"]
 
+
+
+GMatrices`Private`GMatricesPrint:=If[GMatricesLog,Print[##]]&;
+GMatricesPrint[$Input];
+GMatricesPrint["Input file hash: ",Style[FileHash[$InputFileName,"MD5"],Small]];
+GMatricesPrint["****************",Style["GMatrices v"<>ToString[$GMatricesVersion],{Bold}],"********************\n\
+Author:Roman N.Lee, Budker Institute of Nuclear Physics,Novosibirsk.\n\
+GMatrices package defines types for Dirac's gamma-matrices.\n\
+See ?GMatrices`* for a list of functions."];
 
 
 (* ::Subsection:: *)
@@ -77,39 +89,28 @@ VecQs[a_]:=(VecQ@@MakeExpression[a,StandardForm]);
 VecIndQs[a_]:=(VecIndQ@@MakeExpression[a,StandardForm]);
 
 
-MakeBoxes[GHat[a_?VecQ],StandardForm]:=OverscriptBox[MakeBoxes[a,StandardForm],"^"]
-MakeBoxes[GHat[a_?VecQ],TraditionalForm]:=OverscriptBox[MakeBoxes[a,StandardForm],"^"]
-MakeExpression[OverscriptBox[p_?VecQs,"^"],StandardForm]:=MakeExpression[RowBox[{"GHat","[",p,"]"}],StandardForm]
-MakeExpression[RowBox[{lhs___,"\[Gamma]","\[CenterDot]",p_?VecQs,rhs___}],StandardForm]:=MakeExpression[RowBox[{"GHat","[",p,"]"}],StandardForm]
-MakeExpression[RowBox[{lhs___,p_?VecQs,"\[CenterDot]","\[Gamma]",rhs___}],StandardForm]:=MakeExpression[RowBox[{"GHat","[",p,"]"}],StandardForm]
-
-
-MakeExpression[SuperscriptBox["\[Gamma]",b_],StandardForm]:=MakeExpression[RowBox[{"SupIndex","[",RowBox[{GMatrix,",",b}],"]"}],StandardForm]
-
-
-MakeBoxes[SupIndex[GMatrix,b_],StandardForm]:=SuperscriptBox["\[Gamma]",MakeBoxes[b,StandardForm]]
-MakeBoxes[SupIndex[GMatrix,b_],TraditionalForm]:=SuperscriptBox["\[Gamma]",MakeBoxes[b,TraditionalForm]]
-
-
-MakeExpression[SubscriptBox["\[Gamma]",b_],StandardForm]:=MakeExpression[RowBox[{"SubIndex","[",RowBox[{GMatrix,",",b}],"]"}],StandardForm]
-
-
-MakeBoxes[SubIndex[GMatrix,b_],StandardForm]:=SubscriptBox["\[Gamma]",MakeBoxes[b,StandardForm]]
-MakeBoxes[SubIndex[GMatrix,b_],TraditionalForm]:=SubscriptBox["\[Gamma]",MakeBoxes[b,TraditionalForm]]
-
-
-MakeExpression[SubscriptBox["I","\[Gamma]"],StandardForm]:=MakeExpression["GIdentity",StandardForm]
-MakeBoxes[GIdentity,StandardForm]:=SubscriptBox["I","\[Gamma]"]
-
-
-AddInputAlias[NotationBoxTag[SubscriptBox["I","\[Gamma]"]],"ig",InputNotebook[]];
-
-
-MakeExpression[SubscriptBox["\[Gamma]","5"],StandardForm]:=MakeExpression["Gamma5",StandardForm]
-MakeBoxes[Gamma5,StandardForm]:=SubscriptBox["\[Gamma]","5"]
-
-
-AddInputAlias[NotationBoxTag[SubscriptBox["\[Gamma]","5"]],"g5",InputNotebook[]];
+If[$Notebooks,
+MakeBoxes[GHat[a_?VecQ],StandardForm]:=OverscriptBox[MakeBoxes[a,StandardForm],"^"];
+MakeBoxes[GHat[a_?VecQ],TraditionalForm]:=OverscriptBox[MakeBoxes[a,StandardForm],"^"];
+MakeExpression[OverscriptBox[p_?VecQs,"^"],StandardForm]:=MakeExpression[RowBox[{"GHat","[",p,"]"}],StandardForm];
+MakeExpression[RowBox[{lhs___,"\[Gamma]","\[CenterDot]",p_?VecQs,rhs___}],StandardForm]:=MakeExpression[RowBox[{"GHat","[",p,"]"}],StandardForm];
+MakeExpression[RowBox[{lhs___,p_?VecQs,"\[CenterDot]","\[Gamma]",rhs___}],StandardForm]:=MakeExpression[RowBox[{"GHat","[",p,"]"}],StandardForm];
+MakeExpression[SuperscriptBox["\[Gamma]",b_],StandardForm]:=MakeExpression[RowBox[{"SupIndex","[",RowBox[{GMatrix,",",b}],"]"}],StandardForm];
+MakeBoxes[SupIndex[GMatrix,b_],StandardForm]:=SuperscriptBox["\[Gamma]",MakeBoxes[b,StandardForm]];
+MakeBoxes[SupIndex[GMatrix,b_],TraditionalForm]:=SuperscriptBox["\[Gamma]",MakeBoxes[b,TraditionalForm]];
+MakeExpression[SubscriptBox["\[Gamma]",b_],StandardForm]:=MakeExpression[RowBox[{"SubIndex","[",RowBox[{GMatrix,",",b}],"]"}],StandardForm];
+MakeBoxes[SubIndex[GMatrix,b_],StandardForm]:=SubscriptBox["\[Gamma]",MakeBoxes[b,StandardForm]];
+MakeBoxes[SubIndex[GMatrix,b_],TraditionalForm]:=SubscriptBox["\[Gamma]",MakeBoxes[b,TraditionalForm]];
+MakeExpression[SubscriptBox["I","\[Gamma]"],StandardForm]:=MakeExpression["GIdentity",StandardForm];
+MakeBoxes[GIdentity,StandardForm]:=SubscriptBox["I","\[Gamma]"];
+MakeExpression[SubscriptBox["\[Gamma]","5"],StandardForm]:=MakeExpression["Gamma5",StandardForm];
+MakeBoxes[Gamma5,StandardForm]:=SubscriptBox["\[Gamma]","5"];
+Module[{aliases=InputAliases/.Options[EvaluationNotebook[],InputAliases]},
+AppendTo[aliases,"ig" ->InterpretationBox[SubscriptBox["I", "\[Gamma]"], GMatrices`GIdentity]];
+AppendTo[aliases,"g5" ->InterpretationBox[SubscriptBox["\[Gamma]","5"], GMatrices`Gamma5]];
+SetOptions[EvaluationNotebook[],InputAliases->aliases]
+];
+]
 
 
 TypeHierarchy[GLMatrix,GPMatrix];
@@ -240,7 +241,7 @@ ex=FixedPoint[(#/.Dot->dot/.dt_dot:>Distribute[dt]/.dot[a__]:>((Times@@#[[1]])(d
 ]
 
 
-GTrace[expr_]:=GDistribute[expr]/.Dot->gtrace
+GTrace[expr_]:=GDistribute[expr]/.Dot->gtrace/.{GIdentity->1,SupIndex[GMatrix,_]|SubIndex[GMatrix,_]|_GHat->0};
 
 
 gtrace[a__]/;FreeQ[{a},Gamma5]&&OddQ[Length[{a}]]=0;
@@ -253,7 +254,6 @@ gtrace[a_,b1_,bs__]:=Sum[(-1)^(i+1)*gtrace[a,{b1,bs}[[i]]]gtrace@@Delete[{b1,bs}
 
 
 (* ::Input:: *)
-(**)
 (*GTrace[x_Plus]:=GTrace/@x;*)
 (*GTrace[x_?(FreeQ[#,GMPat]&)*y_]:=x*GTrace[y];*)
 (*GTrace[GIdentity]=1;*)
