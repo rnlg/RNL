@@ -32,7 +32,7 @@ Vectors`VectorsLog=False;Needs["Vectors`","RNL`Vectors`"];
 Needs["LinearFunctions`","RNL`LinearFunctions`"];
 Needs["Numbers`","RNL`Numbers`"];
 Needs["Types`","RNL`Types`"];
-BeginPackage["GMatrices`",{(*"Notation`","Types`",*)"Numbers`","LinearFunctions`","Vectors`"}]
+BeginPackage["GMatrices`",{(*"Notation`",*)"Types`","Numbers`","LinearFunctions`","Vectors`"}]
 
 
 $GMatricesFORMTempDir=$TemporaryDirectory<>"/";
